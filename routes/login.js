@@ -3,6 +3,7 @@ const router = express.Router();
 const path = require("path");
 const asyncHandler = require("express-async-handler");
 const userModel = require("../models/user");
+const bcrypt = require("bcrypt");
 
 router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../htmlFiles/login.html"));
@@ -26,12 +27,15 @@ router.post(
       res.redirect("/register");
     }
 
-    if (user.password !== password) {
-      console.log(user.password, password);
+    const passwordValid = await bcrypt.compare(password, user.password);
+
+    if (!passwordValid) {
       res.status(401);
       throw new Error("Invalid password");
     }
 
+    req.session.isAuth = true;
+    req.session.username = username;
     // redirct user to dashboard
     res.redirect("/dashboard");
   })

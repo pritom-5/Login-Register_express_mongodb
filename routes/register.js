@@ -3,6 +3,7 @@ const router = express.Router();
 const path = require("path");
 const userModel = require("../models/user");
 const asyncHandler = require("express-async-handler");
+const bcrypt = require("bcrypt");
 
 router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../htmlFiles/register.html"));
@@ -25,9 +26,15 @@ router.post(
       throw new Error("user already exists");
     }
 
-    const returnedUser = await userModel.create({ username, password, email });
+    // hased password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    console.log(returnedUser);
+    const returnedUser = await userModel.create({
+      username,
+      password: hashedPassword,
+      email,
+    });
+
     res.redirect("/");
   })
 );
